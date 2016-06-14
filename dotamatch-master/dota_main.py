@@ -16,6 +16,7 @@ print("")
 cashe = 99244105
 kyson = 103094836
 ursa = 2422865073
+tb = 2418453237
 #cashe's special key
 key = "DCC68441A828EA75DB2D320764869026"
 history = MatchHistory(key)
