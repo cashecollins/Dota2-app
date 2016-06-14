@@ -336,7 +336,6 @@ def main():
     #getLeagueMatches(4479)
     #getPlayerSummary(cashe)
     getPlayerMatches(cashe)
-    print("im changing things, so lets see what happens.")
     #getPlayerMatchesBySequence(cashe)
     #getHeroName(45)
 
