@@ -3,13 +3,15 @@ This example shows how you could count up the heroes used by a player.
 """
 import pprint
 import time
+import datetime
 from dotamatch.history import MatchHistory, MatchHistoryBySequenceNum
 from dotamatch.players import PlayerSummaries
 from dotamatch.heroes import Heroes
 from dotamatch.matches import MatchDetails, Match
-from dotamatch.dotadictionary import h, items
+from dotamatch.dotadictionary import h
 from dotamatch.leagues import LeagueListing, LiveLeague
 from dotamatch.teams import Teams
+from dotamatch.items import Items
 
 print("")
 #global test values
@@ -26,7 +28,7 @@ heroes = Heroes(key)
 details = MatchDetails(key)
 summary = PlayerSummaries(key)
 teams = Teams(key)
-
+items = Items(key)
 
 
 # gives the hero usage for the last 100 games#
@@ -43,12 +45,26 @@ def heroUsage(steamID):
 # API Functions
 def getHeroName(id):
     """returns the heroes friendly name from their id"""
+    print(heroes.url)
+    print(items.items().__dict__)
     hero_name = heroes.heroes()[id]
     friendly_hero_name = str(hero_name)[14:]
-    return friendly_hero_name
-def getPlayerSummary(steamID):
+    friendly_hero_name = friendly_hero_name.replace("_", " ")
+    return friendly_hero_name.title()
+
+def getPlayerName(steamID):
     """returns the players gamer name"""
-    return list(summary.players(steamID))
+    l = list(summary.players(steamID))
+    if l:
+        return l[0]
+    else:
+        return "Private Account Faggot Face"
+def getItemName(id):
+    """returns the items friendly name from their id"""
+    item_name = items.items()[id]
+    friendly_item_name = str(item_name)[5:]
+    friendly_item_name = friendly_item_name.replace("_", " ")
+    return friendly_item_name.title()
 def getPlayerMatches(steamID):
     """ returns a list of most recent games for player steamID, including:
     (start_time, match_id, players, dire_team_id, radiant_team_id, match_seq_num) """
@@ -56,8 +72,8 @@ def getPlayerMatches(steamID):
     matches = 0
     lastMatch = 0
     date = 0
-    for i in range(10):
-        for match in history.matches(account_id=steamID, matches_requested=500, start_at_match_id=lastMatch, date_max=date):
+    for i in range(5):
+        for match in history.matches(account_id=steamID, matches_requested=500, start_at_match_id=lastMatch):
             matches += 1
             player = match.player(steamID)
             games.append(match)
@@ -65,10 +81,20 @@ def getPlayerMatches(steamID):
             date = match.start_time
             print(match.__dict__)
         print(matches)
+    for j in range(5):
+        for match2 in history.matches(account_id=steamID, matches_requested=500, start_at_match_id=lastMatch, max_date=date):
+            matches += 1
+            player = match2.player(steamID)
+            games.append(match2)
+            lastMatch = match2.match_id
+            date = match2.start_time
+            print(date)
+            print(match2.__dict__)
+        print(matches)
     print(lastMatch)
     getMatchDetails(lastMatch)
     return games
-def getPlayerMatchesBySequence(steamID):
+def getMatchesBySequence(steamID):
     """ returns a list of most recent games for player steamID, including:
     (start_time, match_id, players, dire_team_id, radiant_team_id, match_seq_num) """
     games = []
@@ -100,12 +126,34 @@ def getMatchDetails(match_id):
         if details.match(match_id).players != []:
             if game.radiant_win:
                 print("Radiant Victory!")
-                #print(getPlayerSummary(game.radiant_captain)[0])
             else:
                 print("Dire Victory!")
-                #print(getPlayerSummary(game.dire_captain)[0])
             print("Radiant " + str(game.radiant_score) + " - " + str(game.dire_score) + " Dire")
             print("")
+            """ get player stats for match """
+            for player in game.players:
+                print(player)
+                inventory = []
+                invent = []
+                for i in range(6):
+                    inventory.append(int(player['item_'+str(i)]))
+                for j in inventory:
+                    if j == 0:
+                        invent.append("too poor, no item")
+                    else:
+                        invent.append(getItemName(j))
+                print(invent)
+                print("Name: " + str(getPlayerName(int(player['account_id']))))
+                print("Hero: " + getHeroName(player['hero_id']))
+                print("Level: " + str(player['level']))
+                print("K/D/A: " + str(player['kills']) + "/" + str(player['deaths']) + "/" + str(player['assists']))
+                print("GPM: " + str(player['gold_per_min']))
+                print("XPM: " + str(player['xp_per_min']))
+                print("Last hits: " + str(player['last_hits']))
+                print("Denies: " + str(player['denies']))
+
+                print("")
+
 
 # ============================================ #
 # =========== Tournament Functions =========== #
@@ -333,12 +381,13 @@ def picks(picklist):
 def main():
     #heroUsage(kyson)
     #getLeagueInfo("The_Manila_Major_2016")
-    #getMatchDetails(14615548)
+    getMatchDetails(tb)
     #getLeagueMatches(4479)
-    #getPlayerSummary(cashe)
-    getPlayerMatches(cashe)
-    #getPlayerMatchesBySequence(cashe)
-    #getHeroName(45)
+    #getPlayerName(cashe)
+    #getPlayerMatches(kyson)
+    #getMatchesBySequence(cashe)
+    #print(getHeroName(45))
+    #print(getItemName(71))
 
 
 main()

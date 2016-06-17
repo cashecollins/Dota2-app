@@ -1,7 +1,7 @@
-from dotamatch.api import CachedApi
+from dotamatch import api
 
 
-class Heroes(CachedApi):
+class Heroes(api.CachedApi):
     url = "https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?"
 
     def heroes(self):
