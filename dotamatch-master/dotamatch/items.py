@@ -1,18 +1,19 @@
 from dotamatch.api import CachedApi
 
 
-class Items(CachedApi):
+class GameItems(CachedApi):
     url = "https://api.steampowered.com/IEconDOTA2_570/GetGameItems/V001/?"
 
-    def items(self):
+    def gameItems(self):
         results = self._get()
-        items = {}
+        game_items = {}
         for result in results['result']['items']:
-            items[result['id']] = Item(result['id'], result['name'])
-        return items
+            game_items[result['id']] = GameItem(result['id'], result['name'])
+        CachedApi.cache = {}
+        return game_items
 
 
-class Item(object):
+class GameItem(object):
     def __init__(self, id_, name):
         self.id_ = id_
         self.name = name

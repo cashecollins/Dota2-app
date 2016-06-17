@@ -11,7 +11,7 @@ from dotamatch.matches import MatchDetails, Match
 from dotamatch.dotadictionary import h
 from dotamatch.leagues import LeagueListing, LiveLeague
 from dotamatch.teams import Teams
-from dotamatch.items import Items
+from dotamatch.items import GameItems
 
 print("")
 #global test values
@@ -28,7 +28,7 @@ heroes = Heroes(key)
 details = MatchDetails(key)
 summary = PlayerSummaries(key)
 teams = Teams(key)
-items = Items(key)
+game_items = GameItems(key)
 
 
 # gives the hero usage for the last 100 games#
@@ -45,13 +45,10 @@ def heroUsage(steamID):
 # API Functions
 def getHeroName(id):
     """returns the heroes friendly name from their id"""
-    print(heroes.url)
-    print(items.items().__dict__)
     hero_name = heroes.heroes()[id]
     friendly_hero_name = str(hero_name)[14:]
     friendly_hero_name = friendly_hero_name.replace("_", " ")
     return friendly_hero_name.title()
-
 def getPlayerName(steamID):
     """returns the players gamer name"""
     l = list(summary.players(steamID))
@@ -61,7 +58,7 @@ def getPlayerName(steamID):
         return "Private Account Faggot Face"
 def getItemName(id):
     """returns the items friendly name from their id"""
-    item_name = items.items()[id]
+    item_name = game_items.gameItems()[id]
     friendly_item_name = str(item_name)[5:]
     friendly_item_name = friendly_item_name.replace("_", " ")
     return friendly_item_name.title()
@@ -132,26 +129,25 @@ def getMatchDetails(match_id):
             print("")
             """ get player stats for match """
             for player in game.players:
-                print(player)
-                inventory = []
+                #print(player)
                 invent = []
+                inventory = []
                 for i in range(6):
-                    inventory.append(int(player['item_'+str(i)]))
-                for j in inventory:
+                    invent.append(int(player['item_'+str(i)]))
+                for j in invent:
                     if j == 0:
-                        invent.append("too poor, no item")
+                        inventory.append("too poor, no item")
                     else:
-                        invent.append(getItemName(j))
-                print(invent)
+                        inventory.append(getItemName(j))
                 print("Name: " + str(getPlayerName(int(player['account_id']))))
                 print("Hero: " + getHeroName(player['hero_id']))
+                print(inventory)
                 print("Level: " + str(player['level']))
                 print("K/D/A: " + str(player['kills']) + "/" + str(player['deaths']) + "/" + str(player['assists']))
                 print("GPM: " + str(player['gold_per_min']))
                 print("XPM: " + str(player['xp_per_min']))
                 print("Last hits: " + str(player['last_hits']))
                 print("Denies: " + str(player['denies']))
-
                 print("")
 
 
@@ -381,7 +377,7 @@ def picks(picklist):
 def main():
     #heroUsage(kyson)
     #getLeagueInfo("The_Manila_Major_2016")
-    getMatchDetails(tb)
+    #getMatchDetails(tb)
     #getLeagueMatches(4479)
     #getPlayerName(cashe)
     #getPlayerMatches(kyson)
