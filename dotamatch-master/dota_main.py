@@ -8,7 +8,7 @@ from dotamatch.history import MatchHistory, MatchHistoryBySequenceNum
 from dotamatch.players import PlayerSummaries
 from dotamatch.heroes import Heroes
 from dotamatch.matches import MatchDetails, Match
-from dotamatch.dotadictionary import h
+from dotamatch.dotadictionary import abilities
 from dotamatch.leagues import LeagueListing, LiveLeague
 from dotamatch.teams import Teams
 from dotamatch.items import GameItems
@@ -30,6 +30,63 @@ summary = PlayerSummaries(key)
 teams = Teams(key)
 game_items = GameItems(key)
 
+
+class Player:
+    """takes a player DICTIONARY and parses it, creating another
+    object that contains all of the most important information
+    from a player during a match, also includes functions for
+    retrieving the inventory and the hero ability names"""
+
+    def __init__(self, player):
+        print('')
+        """ initialize all of the attributes of a PlayerBar """
+        self.player = player
+        self.player_name = str(getPlayerName(int(self.player['account_id'])))
+        self.hero = getHeroName(self.player['hero_id'])
+        self.level = str(self.player['level'])
+        self.kills = str(self.player['kills'])
+        self.deaths = str(self.player['deaths'])
+        self.assists = str(self.player['assists'])
+        self.gpm = str(self.player['gold_per_min'])
+        self.xpm = str(self.player['xp_per_min'])
+        self.last_hits = str(self.player['last_hits'])
+        self.denies = str(self.player['denies'])
+        self.inventory = self.getInventory(self.player)
+        self.abilities = self.getAbilities(self.player)
+        """ This for now just prints off all of these
+        super awesome attributes """
+        self.printMatchInfo()
+
+    def getInventory(self, player):
+        invent = []
+        inventory=[]
+        for i in range(6):
+            invent.append(int(player['item_' + str(i)]))
+        for j in invent:
+            if j == 0:
+                inventory.append("too poor, no item")
+            else:
+                inventory.append(getItemName(j))
+        return inventory
+
+    def getAbilities(self, player):
+        abilities = []
+        for k in player['ability_upgrades']:
+            abilities.append(getAbilityName(str(k['ability'])))
+        return abilities
+
+    def printMatchInfo(self):
+        print("Name: " + str(self.player_name))
+        print("Hero: " + self.hero)
+        print(self.inventory)
+        print(self.abilities)
+        print("Level: " + self.level)
+        print("K/D/A: " + self.kills + "/" + self.deaths + "/" + self.assists)
+        print("GPM: " + self.gpm)
+        print("XPM: " + self.xpm)
+        print("Last hits: " + self.last_hits)
+        print("Denies: " + self.denies)
+        print("")
 
 # gives the hero usage for the last 100 games#
 def heroUsage(steamID):
@@ -62,6 +119,11 @@ def getItemName(id):
     friendly_item_name = str(item_name)[5:]
     friendly_item_name = friendly_item_name.replace("_", " ")
     return friendly_item_name.title()
+def getAbilityName(id):
+    for ability in abilities:
+        if ability['id'] == id:
+            return ability['name']
+
 def getPlayerMatches(steamID):
     """ returns a list of most recent games for player steamID, including:
     (start_time, match_id, players, dire_team_id, radiant_team_id, match_seq_num) """
@@ -117,6 +179,10 @@ def getMatchDetails(match_id):
     barracks_status_dire, duration, lobby_type, human_players,
     start_time, first_blood_time, engine, players, cluster,
     game_mode"""
+
+    """ the game variable is an OBJECT that has a bunch of
+    attributes which hold dictionaries, one of these attributes
+    is players """
     game = details.match(match_id)
     print(game.__dict__.keys())
     if match_id:
@@ -128,27 +194,14 @@ def getMatchDetails(match_id):
             print("Radiant " + str(game.radiant_score) + " - " + str(game.dire_score) + " Dire")
             print("")
             """ get player stats for match """
+            players = []
             for player in game.players:
-                #print(player)
-                invent = []
-                inventory = []
-                for i in range(6):
-                    invent.append(int(player['item_'+str(i)]))
-                for j in invent:
-                    if j == 0:
-                        inventory.append("too poor, no item")
-                    else:
-                        inventory.append(getItemName(j))
-                print("Name: " + str(getPlayerName(int(player['account_id']))))
-                print("Hero: " + getHeroName(player['hero_id']))
-                print(inventory)
-                print("Level: " + str(player['level']))
-                print("K/D/A: " + str(player['kills']) + "/" + str(player['deaths']) + "/" + str(player['assists']))
-                print("GPM: " + str(player['gold_per_min']))
-                print("XPM: " + str(player['xp_per_min']))
-                print("Last hits: " + str(player['last_hits']))
-                print("Denies: " + str(player['denies']))
-                print("")
+                print(player)
+                player_details = Player(player)
+                players.append(player_details)
+                break
+            print("")
+
 
 
 # ============================================ #
@@ -173,7 +226,6 @@ def getLeagueInfo(leagueName):
             print("Tournament Name: " + str(league.name[11:]))
             print("")
             break
-
     getLiveLeagues(leaguelist)
 def getLiveLeagues(leaguelist):
     """gets a live league that is tier 3 (a major) and prints off all of the
@@ -304,24 +356,17 @@ def getLeagueMatches(l_id):
     """ Gets only league matches for a sertain league_id from
     getTournamentGames() and returns the match details of all
     of the matches from that tournament """
-    """
-    matches = []
-    with open('leagueInfo.txt', 'r') as f:
-        for line in f:
-            for word in line.split():
-                matches.append(word)
-        f.close()
-        for i in range(len(matches)):
-            if i != 0:
-                getMatchDetails(matches[i])
-    """
+    league_matches = []
     for match in getTournamentGames(l_id):
         # print(match.__dict__)
         # This will get you the team_id, which is super cool
         # match.dire_team_id or match.radiant_team_id
         # This prints the names of all of the pro teams
         # print(teams.teams())
-        getMatchDetails(match.match_id)
+        print(match)
+        league_matches.append(match)
+        #getMatchDetails(match.match_id)
+    print(len(league_matches))
 def getTournamentGames(l_id):
     """returns a list of match objects all from a specific tournament from
     its league_id as a list in list games"""
@@ -377,7 +422,7 @@ def picks(picklist):
 def main():
     #heroUsage(kyson)
     #getLeagueInfo("The_Manila_Major_2016")
-    #getMatchDetails(tb)
+    getMatchDetails(tb)
     #getLeagueMatches(4479)
     #getPlayerName(cashe)
     #getPlayerMatches(kyson)
